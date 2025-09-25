@@ -46,7 +46,7 @@ public class AshCollector extends AbstractScript {
     private int lastWorld = -1;
 
     private long lastAshScan = 0;
-    private static final long SCAN_DELAY = 1500L;
+    private static final long SCAN_DELAY = 300L;
     private int consecutiveEmptyScans = 0;
     private static final int HOP_THRESHOLD = 20;
     private static final int MIN_FIRES = 5;
@@ -130,7 +130,8 @@ public class AshCollector extends AbstractScript {
         } catch (Exception e) {
             log("Error in main loop: " + e.getMessage());
             status = "Error: " + e.getMessage();
-            return 5000;
+            Sleep.sleep(4500, 5500);
+            return 0;
         }
     }
 
@@ -139,7 +140,7 @@ public class AshCollector extends AbstractScript {
 
         if (currentTime - lastAshScan < SCAN_DELAY) {
             status = "Waiting to scan for ashes...";
-            return 1000;
+            return 300;
         }
 
         lastAshScan = currentTime;
@@ -176,7 +177,8 @@ public class AshCollector extends AbstractScript {
                 return random.nextInt(800) + 400;
             } else {
                 log("Failed to interact with ashes, retrying...");
-                return 2000;
+                Sleep.sleep(1800, 2200);
+            return 0;
             }
         } else {
             consecutiveEmptyScans++;
@@ -190,10 +192,11 @@ public class AshCollector extends AbstractScript {
                     GRAND_EXCHANGE_AREA.contains(obj.getTile())
                 );
 
-                if (nearestFire != null && Players.getLocal().getTile().distance(nearestFire.getTile()) > 3) {
-                    status = "Moving closer to fires for ash collection";
-                    Walking.walk(nearestFire.getTile());
-                    Sleep.sleep(800, 1200);
+                if (nearestFire != null && Players.getLocal().getTile().distance(nearestFire.getTile()) > 2) {
+                    status = "Moving to fire (" + activeFiresDetected + " active) for ashes";
+                    Tile fireAdjacent = nearestFire.getTile();
+                    Walking.walk(fireAdjacent);
+                    Sleep.sleep(600, 1000);
                 }
             } else {
                 Tile centerTile = new Tile(3165, 3491, 0); // Center of expanded GE area
@@ -227,7 +230,8 @@ public class AshCollector extends AbstractScript {
                 return performWorldHop();
             }
 
-            return 2000;
+            Sleep.sleep(1800, 2200);
+            return 0;
         }
     }
 
@@ -238,7 +242,8 @@ public class AshCollector extends AbstractScript {
             log("Walking to bank");
             Walking.walk(GRAND_EXCHANGE_BANK.getCenter());
             Sleep.sleepUntil(() -> GRAND_EXCHANGE_BANK.contains(Players.getLocal()), 8000);
-            return 2000;
+            Sleep.sleep(1800, 2200);
+            return 0;
         }
 
         if (!Bank.isOpen()) {
@@ -247,7 +252,8 @@ public class AshCollector extends AbstractScript {
                 Sleep.sleepUntil(Bank::isOpen, 5000);
             } else {
                 log("Failed to open bank - retrying");
-                return 3000;
+                Sleep.sleep(2500, 3500);
+            return 0;
             }
         }
 
@@ -263,10 +269,12 @@ public class AshCollector extends AbstractScript {
                 Bank.close();
 
                 status = "Ashes banked, returning to collection";
-                return 1000;
+                Sleep.sleep(800, 1200);
+            return 0;
             } else {
                 log("Failed to deposit ashes");
-                return 2000;
+                Sleep.sleep(1800, 2200);
+            return 0;
             }
         }
 
@@ -278,7 +286,8 @@ public class AshCollector extends AbstractScript {
 
         Tile playerTile = Players.getLocal().getTile();
         if (playerTile == null) {
-            return 2000;
+            Sleep.sleep(1800, 2200);
+            return 0;
         }
 
         if (playerTile.distance(GRAND_EXCHANGE_CENTER.getCenter()) < 20) {
@@ -309,7 +318,8 @@ public class AshCollector extends AbstractScript {
 
     private int performWorldHop() {
         if (Bank.isOpen()) {
-            return 1000;
+            Sleep.sleep(800, 1200);
+            return 0;
         }
 
         status = "Finding highest population F2P world";
@@ -338,11 +348,13 @@ public class AshCollector extends AbstractScript {
             scheduleNextWorldHop();
 
             log("Hopped to world " + newWorldId);
-            return 3000; // Wait a bit after world hop
+            Sleep.sleep(2500, 3500);
+            return 0;
         } else {
             log("Failed to hop to world " + newWorldId);
             scheduleNextWorldHop();
-            return 5000;
+            Sleep.sleep(4500, 5500);
+            return 0;
         }
     }
 
